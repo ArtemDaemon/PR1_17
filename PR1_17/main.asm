@@ -124,11 +124,24 @@ main proc
     ; EAX = Y^2 + XY
     add eax, ebx
 
+    ; EBX.EDX = X/Y
+    ; ECX - число незначащих нулей
+    push edi
+    push eax
+    mov eax, xValue
+    mov ebx, yValue
+    call divideIntNumbers
+    mov ebx, edi
+    mov edx, esi
+    mov ecx, eax
+    pop eax
+    pop edi
+
     ; === Конвертация результата в строку ===
     push edi
-    ;mov eax, ebx                          ; Целая часть числа
-    mov ebx, 0                          ; Дробная часть числа
-    mov ecx, 0                          ; Число нулей в начале дробной части
+    mov eax, ebx                          ; Целая часть числа
+    mov ebx, edx                          ; Дробная часть числа
+    ;mov ecx, 0                          ; Число нулей в начале дробной части
     mov esi, 0                          ; Флаг отрицательного числа (0/1)
     lea edi, resultBuffer               ; Привязываем буфер для результата
     call floatToString                  ; Вызываем процедуру для конвертации результата в строку
@@ -310,5 +323,70 @@ endFraction:
     mov byte ptr [edi], 0             ; Добавить null-терминатор
     ret
 floatToString ENDP
+
+divideIntNumbers PROC
+    ; === Процедура для деления одного целого числа на другое с ограничением 4 знаков после запятой
+    ; Вход:
+    ;   EAX = Делимое
+    ;   EBX = Делитель
+    ; Выход:
+    ;   EDI = Целая часть
+    ;   ESI = Десятичная часть (до 4 знаков после запятой)
+    ;   EAX = Число незначащих нулей
+    ; Используется:
+    ;   EDX = Для временного хранения остатка от деления
+    ;   ECX = Счётчик итераций
+
+    xor esi, esi                ; Инициализировать десятичную часть
+    ; Выполнить целочисленное деление
+    xor edx, edx                ; Очистить остаток (EDX)
+    div ebx                     ; Деление EAX / EBX (целая часть в EAX, остаток в EDX)
+
+    mov edi, eax                ; Сохранить целую часть
+    push edi
+    xor edi, edi
+
+    ; Проверить, есть ли остаток
+    test edx, edx               ; Проверить остаток
+    jz done                     ; Если остатка нет, завершить
+    mov eax, edx                ; Сохранить остаток
+
+    ; Обработка остатка
+    mov ecx, 4                  ; Задать точность до 4 знаков после запятой             
+fractionLoop:
+    imul eax, 10                ; Умножить остаток на 10
+    xor edx, edx                ; Очистить регистр остатка
+    div ebx                     ; Выполнить деление (EAX / EBX)
+
+    ; Если целая часть от деления остатка равна 0
+    test eax, eax
+    jnz addFraction
+    ; Если хранимая дробная часть равна 0
+    test esi, esi
+    jnz addFraction
+
+    ; Иначе увеличим число незначащих нулей
+    inc edi
+    jmp checkNewFraction
+
+addFraction:
+    ; Добавить текущий разряд в десятичную часть
+    imul esi, 10                ; Увеличить разрядность
+    add esi, eax                ; Добавить новый разряд (даже если он 0)
+
+checkNewFraction:
+    ; Проверить новый остаток
+    test edx, edx               ; Если остаток стал нулевым
+    jz done                     ; Прекратить обработку
+
+    mov eax, edx                ; Новый остаток
+    loop fractionLoop           ; Повторить цикл (максимум 4 раза)
+
+done:
+    mov eax, edi
+    pop edi
+    
+    ret
+divideIntNumbers ENDP
 
 end main
