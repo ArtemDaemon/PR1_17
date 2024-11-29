@@ -14,7 +14,7 @@ STD_INPUT_HANDLE equ -10
 
 .data
 promptX db 'Enter a value for X: ', 0                       ; Сообщение для ввода X
-promptY db 'Enter a value for Y: ', 0            ; Сообщение для ввода Y
+promptY db 'Enter a value for Y (non-zero): ', 0            ; Сообщение для ввода Y
 inputBufferX db 16 dup(0)                                   ; Буфер для значения X
 inputBufferY db 16 dup(0)                                   ; Буфер для значения Y
 bytesReadX dd 0                                             ; Кол-во прочитанных байт X
@@ -25,7 +25,7 @@ resultBytes dd 0                                            ; Кол-во бай
 errorMessage db 'Error: Non-numeric input or Y is zero.', 0 ; Сообщение об ошибке
 xValue dd 0                                                 ; Хранимое значение X
 yValue dd 0                                                 ; Хранимое значение Y
-resultMessage db 'The result of the ((X+Y)/Y^2 - 1)*X: ', 0 ; Сообщение о результате
+resultMessage db 'The result of the Y^2 + XY + X/Y: ', 0    ; Сообщение о результате
 bytesResultMessage dd 0                                     ; Кол-во прочитанных байт в сообщении о результате
 
 .code
