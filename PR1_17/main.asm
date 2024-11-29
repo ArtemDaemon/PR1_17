@@ -116,10 +116,14 @@ main proc
 
     ; EAX = Y^2
     imul eax, eax
+    
+    ; EBX = XY
+    mov ebx, xValue
+    imul ebx, yValue
 
     ; === Конвертация результата в строку ===
     push edi
-    ;mov eax, 0                          ; Целая часть числа
+    mov eax, ebx                          ; Целая часть числа
     mov ebx, 0                          ; Дробная часть числа
     mov ecx, 0                          ; Число нулей в начале дробной части
     mov esi, 0                          ; Флаг отрицательного числа (0/1)
